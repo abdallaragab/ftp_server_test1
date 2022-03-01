@@ -5,27 +5,24 @@ import os
 from datetime import datetime
 import time
 import threading
-now = datetime.now()
-
-server_file_found=False
-local_file_found=False
-server_connected=False
 
 
-while(1):
-        last_time_checked=now.time()
-        try:
-         print("trying to connect to update server...")
-         myftp=FTP('192.168.1.10')
-         myftp.login('admin','02967291a');
-         server_connected=True
-        except ftplib.all_errors:
+
+def get_update():
+      server_file_found=False
+      local_file_found=False
+      server_connected=False
+      try:
+           print("trying to connect to update server...")
+           myftp=FTP('192.168.1.10')
+           myftp.login('admin','02967291a');
+           server_connected=True
+      except ftplib.all_errors:
             print("error connecting server")
-        
-        
-        # myftp.retrlines('LIST');
+
+      # myftp.retrlines('LIST');
         #search for the update file in the server
-        if(server_connected):
+      if(server_connected):
             file_names= myftp.nlst()
             for i in range(0,len(file_names)):
                  #print("server"+file_names[i])  #list the server existing files
@@ -42,8 +39,8 @@ while(1):
         
         
         #find the local version number
-        local_files = os.listdir(os.getcwd())
-        for i in range(0,len(local_files)):
+      local_files = os.listdir(os.getcwd())
+      for i in range(0,len(local_files)):
             if(bool(re.match("update\d+\.\d+.txt",local_files[i]))):
                 local_version_str=local_files[i][6:-4]
                 print("local file version is "+local_version_str)
@@ -51,14 +48,8 @@ while(1):
                 break
             
         
-        
-
-        
-        
-        
-        
         #compare between the server file and the local file
-        if(server_file_found):
+      if(server_file_found):
             if((not local_file_found ) or((float(server_version_str)>float(local_version_str)))):
              with open(server_file_name, "wb") as file:
                  # use FTP's RETR command to download the file
@@ -67,11 +58,21 @@ while(1):
         
         
         
-        server_file_found=False
-        local_file_found=False
-        if(server_connected):
+      server_file_found=False
+      local_file_found=False
+      if(server_connected):
              myftp.close();
              server_connected=False
    
-        time.sleep(900.0);
         
+
+
+try:
+   threading._start_new_thread(get_update)
+   time.sleep(900.0);
+   
+except:
+   print("Error: unable to start thread")
+
+while 1:
+   pass
